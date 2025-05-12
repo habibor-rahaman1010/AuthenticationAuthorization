@@ -26,6 +26,7 @@ namespace AuthenticationAuthorization.Controllers
         }
 
         [HttpGet("getallusers")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<UserResponseDto>>> GetAllUserAsync()
         {
             var user = await _userManagementService.GetAllUserAsync();
