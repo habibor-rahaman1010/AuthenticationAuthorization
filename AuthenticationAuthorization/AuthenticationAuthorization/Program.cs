@@ -22,6 +22,18 @@ namespace AuthenticationAuthorization
                 builder.Services.AddJwtAuthentication(builder.Configuration);
 
                 builder.Services.AddControllers();
+
+                builder.Services.AddCors(options =>
+                {
+                    options.AddPolicy("AllowReactApp", policy =>
+                    {
+                        policy.WithOrigins("http://localhost:3000") // Your React dev URL
+                              .AllowAnyHeader()
+                              .AllowAnyMethod()
+                              .AllowCredentials(); // Optional: if using cookies
+                    });
+                });
+
                 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
                 builder.Services.AddOpenApi();
 
@@ -34,10 +46,12 @@ namespace AuthenticationAuthorization
                     app.MapScalarApiReference();
                 }
 
+                app.UseCors("AllowReactApp");
                 app.UseHttpsRedirection();
 
-                app.UseAuthorization();
+                app.UseAuthentication();
 
+                app.UseAuthorization();
 
                 app.MapControllers();
 
