@@ -4,6 +4,7 @@ using AuthenticationAuthorization.UnitOfWorks;
 using AuthenticationAuthorization.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using System.Security.Cryptography;
 
 namespace AuthenticationAuthorization.Services
 {
@@ -13,16 +14,22 @@ namespace AuthenticationAuthorization.Services
         private readonly IAuthenticationUnitOfWork _authenticationUnitOfWork;
         private readonly PasswordHasher<User> _passwordHasher;
         private readonly IApplicationTime _applicationTime;
-        public AccountManagementService(IAuthenticationUnitOfWork authenticationUnitOfWork, IApplicationTime applicationTime)
+        private readonly ITokenGenerator _tokenGenerator;
+
+        public AccountManagementService(IAuthenticationUnitOfWork authenticationUnitOfWork, 
+            ITokenGenerator tokenGenerator,
+            IApplicationTime applicationTime)
         {
             _applicationTime = applicationTime;
+            _tokenGenerator = tokenGenerator;
             _authenticationUnitOfWork = authenticationUnitOfWork;
             _passwordHasher = new PasswordHasher<User>();
         }
 
-        public async Task<string> LoginUserAsync(UserLoginDto request, CancellationToken cancellationToken = default)
+        public async Task<UserLoginResponseDto> LoginUserAsync(UserLoginDto request, CancellationToken cancellationToken = default)
         {
-            return await _authenticationUnitOfWork.AccountRepository.LoginAsync(request, cancellationToken);
+            var user = await _authenticationUnitOfWork.AccountRepository.LoginAsync(request, cancellationToken);
+            return await CreateResponseToken(user);
         }
 
         public async Task<User> RegisterUserAsync(UserRegistrationDto request, CancellationToken cancellationToken = default)
@@ -45,6 +52,53 @@ namespace AuthenticationAuthorization.Services
             await _authenticationUnitOfWork.AccountRepository.RegisterAsync(user, cancellationToken);
             await _authenticationUnitOfWork.SaveAsync();
             return user;
+        }
+
+        private string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[32];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
+        }
+
+        private async Task<string> GenerateAndSaveRefreshToken(User user)
+        {
+            var refreshToken = GenerateRefreshToken();
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(15);
+            await _authenticationUnitOfWork.SaveAsync();
+            return refreshToken;
+        }
+
+        public async Task<UserLoginResponseDto> RefreshTokenAsync(RefreshTokenRequestDto request)
+        {
+           var user = await ValidateRefreshTokenAsync(request.UserId, request.RefreshToken);
+            if (user == null)
+            {
+                return null;
+            }
+            return await CreateResponseToken(user);
+        }
+
+        private async Task<User> ValidateRefreshTokenAsync(Guid userId, string refreshToken)
+        {
+            var user = await _authenticationUnitOfWork.UserRepository.GetByIdAsync(x => x.Id == userId);
+            if (user == null || user.RefreshToken != refreshToken || user.RefreshTokenExpiryTime <= _applicationTime.GetCurrentTime())
+            {
+                return null;
+            }
+            return user;
+        }
+
+        private async Task<UserLoginResponseDto> CreateResponseToken(User user)
+        {
+            return new UserLoginResponseDto
+            {
+                AccessToken = _tokenGenerator.CreateJwtAuthenticationToken(user),
+                RefreshToken = await GenerateAndSaveRefreshToken(user),
+                Email = user.Email
+            };
         }
     }
 }

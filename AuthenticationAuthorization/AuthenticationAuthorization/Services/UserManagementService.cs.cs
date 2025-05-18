@@ -1,6 +1,5 @@
 ﻿using AuthenticationAuthorization.Entities;
 using AuthenticationAuthorization.UnitOfWorks;
-using Microsoft.AspNetCore.Authorization;
 
 namespace AuthenticationAuthorization.Services
 {

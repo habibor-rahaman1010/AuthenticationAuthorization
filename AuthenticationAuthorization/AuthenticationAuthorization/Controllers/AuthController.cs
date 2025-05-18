@@ -60,15 +60,27 @@ namespace AuthenticationAuthorization.Controllers
             {
                 return BadRequest(new { message = "Validation failed!" });
             }
-            var token = await _accountManagementService.LoginUserAsync(request);
-            if (token == null)
+            var response = await _accountManagementService.LoginUserAsync(request);
+            if (response == null)
             {
                 return Unauthorized(new
                 {
                     message = "Invalid user email or password!"
                 });
             }
-            return Ok(new UserLoginResponseDto { Email = request.Email, Token = token});
+
+            return Ok(response);
+        }
+
+        [HttpPost("refresh-token")]
+        public async Task<ActionResult<UserLoginResponseDto>> RefreshToken(RefreshTokenRequestDto request)
+        {
+            var result = await _accountManagementService.RefreshTokenAsync(request);
+            if (result == null || result.AccessToken == null || result.RefreshToken == null || result.Email == null)
+            {
+                return Unauthorized("Invalid Refresh Token");
+            }
+            return Ok(result);
         }
     }
 }

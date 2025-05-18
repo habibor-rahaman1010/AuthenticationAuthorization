@@ -30,7 +30,7 @@ namespace AuthenticationAuthorization.Utilities
                 issuer: _configuration.GetValue<string>("JWT:Issuer"),
                 audience: _configuration.GetValue<string>("JWT:Audience"),
                 claims:claims,
-                expires: DateTime.UtcNow.AddDays(1),
+                expires: DateTime.UtcNow.AddMinutes(1),
                 signingCredentials: credentials
             );
 
