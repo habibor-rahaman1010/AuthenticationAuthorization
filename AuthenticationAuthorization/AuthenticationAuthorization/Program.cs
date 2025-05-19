@@ -1,6 +1,7 @@
 using AuthenticationAuthorization.DatabaseContext;
 using AuthenticationAuthorization.Extentions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Scalar.AspNetCore;
 using System.Reflection;
 
@@ -43,7 +44,17 @@ namespace AuthenticationAuthorization
                 if (app.Environment.IsDevelopment())
                 {
                     app.MapOpenApi();
-                    app.MapScalarApiReference();
+                    app.MapScalarApiReference(options =>
+                    {
+                        // Fluent API
+                        options
+                            .WithTitle("Jwt Authentication")
+                            .WithSidebar(true);
+
+                        // Object initializer
+                        options.Title = "Jwt Authentication";
+                        options.ShowSidebar = true;
+                    });
                 }
 
                 app.UseCors("AllowReactApp");
