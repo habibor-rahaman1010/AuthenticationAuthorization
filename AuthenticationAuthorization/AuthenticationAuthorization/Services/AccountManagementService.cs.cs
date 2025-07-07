@@ -29,6 +29,10 @@ namespace AuthenticationAuthorization.Services
         public async Task<UserLoginResponseDto> LoginUserAsync(UserLoginDto request, CancellationToken cancellationToken = default)
         {
             var user = await _authenticationUnitOfWork.AccountRepository.LoginAsync(request, cancellationToken);
+            if (user == null)
+            {
+                return null;
+            }
             return await CreateResponseToken(user);
         }
 

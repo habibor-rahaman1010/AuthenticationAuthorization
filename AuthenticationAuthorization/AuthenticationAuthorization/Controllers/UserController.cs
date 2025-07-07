@@ -9,7 +9,7 @@ namespace AuthenticationAuthorization.Controllers
     [Route("api/v1/[controller]")]
     [ApiController]
     [Authorize]
-    public class UserController : ControllerBase
+    public class UserController : ApiBaseController
     {
         private readonly IUserManagementService _userManagementService;
         private readonly IApplicationTime _applicationTime;

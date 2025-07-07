@@ -1,9 +1,10 @@
-using AuthenticationAuthorization.DatabaseContext;
 using AuthenticationAuthorization.Extentions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Scalar.AspNetCore;
+using Serilog.Sinks.MSSqlServer;
+using Serilog;
 using System.Reflection;
+using Serilog.Events;
 
 namespace AuthenticationAuthorization
 {
@@ -11,15 +12,40 @@ namespace AuthenticationAuthorization
     {
         public static async Task Main(string[] args)
         {
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json")
+                .Build();
+
+            var connection = configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found."); ;
+            var migrationAssembly = Assembly.GetExecutingAssembly() ?? throw new InvalidOperationException("Migration Assembly not found.");
+
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug().WriteTo.MSSqlServer(
+                    connectionString: connection,
+                    sinkOptions: new MSSqlServerSinkOptions { TableName = "ApplicationLogs", AutoCreateSqlTable = true })
+                .ReadFrom.Configuration(configuration)
+                .CreateBootstrapLogger();
+
             try
             {
+                Log.Information("Application Starting...");
                 var builder = WebApplication.CreateBuilder(args);
 
-                var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-                var migrationAssembly = Assembly.GetExecutingAssembly() ?? throw new InvalidOperationException("Migration Assembly not found.");
+                builder.Host.UseSerilog((hostBuilderContext, loggerConfiguration) =>
+                {
+                    loggerConfiguration.MinimumLevel.Debug()
+                    .WriteTo.MSSqlServer(
+                        connectionString: connection,
+                        sinkOptions: new MSSqlServerSinkOptions { TableName = "ApplicationLogs", AutoCreateSqlTable = true })
+                    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                    .Enrich.FromLogContext()
+                    .ReadFrom.Configuration(builder.Configuration);
+
+                });
 
                 // Add services to the container.             
-                builder.Services.RegisterServices(connectionString, migrationAssembly);
+                builder.Services.RegisterServices(connection, migrationAssembly);
                 builder.Services.AddJwtAuthentication(builder.Configuration);
 
                 builder.Services.AddControllers();
@@ -34,6 +60,12 @@ namespace AuthenticationAuthorization
                               .AllowCredentials(); // Optional: if using cookies
                     });
                 });
+
+                builder.Services.AddControllers(options =>
+                {
+                    options.SuppressAsyncSuffixInActionNames = false;
+                });
+
 
                 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
                 builder.Services.AddOpenApi();
@@ -70,11 +102,11 @@ namespace AuthenticationAuthorization
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString(), "The application occures a problem!");
+                Log.Fatal(ex, "Application Crashed...");
             }
             finally
             {
-                Console.WriteLine("The application has crashed!");
+                await Log.CloseAndFlushAsync();
             }
         }
     }

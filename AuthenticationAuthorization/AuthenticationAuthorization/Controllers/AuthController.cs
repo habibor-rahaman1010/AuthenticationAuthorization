@@ -6,7 +6,7 @@ namespace AuthenticationAuthorization.Controllers
 {
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class AuthController : ControllerBase
+    public class AuthController : ApiBaseController
     {
         private readonly IAccountManagementService _accountManagementService;
         private readonly IUserManagementService _userManagementService;
