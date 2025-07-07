@@ -40,7 +40,7 @@ namespace AuthenticationAuthorization.Services
         {
             var user = new User();
             user.Id = Guid.NewGuid();
-            user.FistName = request.FistName;
+            user.FirstName = request.FirstName;
             user.LastName = request.LastName;
             user.UserName = request.UserName;
             user.Phone = request.Phone;

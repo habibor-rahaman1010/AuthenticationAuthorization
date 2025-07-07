@@ -36,7 +36,7 @@ namespace AuthenticationAuthorization.Controllers
             var response = new UserResponseDto
             {
                 Id = user.Id,
-                FistName = user.FistName,
+                FirstName = user.FirstName,
                 LastName = user.LastName,
                 UserName = user.UserName,
                 Phone = user.Phone,

@@ -47,7 +47,7 @@ namespace AuthenticationAuthorization.Controllers
             var response = new UserResponseDto
             {
                 Id = user.Id,
-                FistName = user.FistName,
+                FirstName = user.FirstName,
                 LastName = user.LastName,
                 UserName = user.UserName,
                 Phone = user.Phone,
@@ -74,7 +74,7 @@ namespace AuthenticationAuthorization.Controllers
             var response = new UserResponseDto
             {
                 Id = user.Id,
-                FistName = user.FistName,
+                FirstName = user.FirstName,
                 LastName = user.LastName,
                 UserName = user.UserName,
                 Phone = user.Phone,
@@ -104,7 +104,7 @@ namespace AuthenticationAuthorization.Controllers
                 return BadRequest(new { messaage = "User not found in your system!" });
             }
 
-            existUser.FistName = request.FistName;
+            existUser.FirstName = request.FirstName;
             existUser.LastName = request.LastName;
             existUser.UserName = request.UserName;
             existUser.Phone = request.Phone;
@@ -119,7 +119,7 @@ namespace AuthenticationAuthorization.Controllers
             var response = new UserResponseDto
             {
                 Id = existUser.Id,
-                FistName = existUser.FistName,
+                FirstName = existUser.FirstName,
                 LastName = existUser.LastName,
                 UserName = existUser.UserName,
                 Phone = existUser.Phone,
