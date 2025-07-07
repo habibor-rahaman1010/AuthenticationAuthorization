@@ -20,7 +20,7 @@ namespace AuthenticationAuthorization.Controllers
         }
 
         [HttpGet("authenticated")]
-        public async Task<ActionResult<string>> Authenticated()
+        public IActionResult Authenticated()
         {
             return Ok(new { message = "Here user all information and this rout is access can only authenticadted users!" });
         }
