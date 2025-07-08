@@ -1,5 +1,6 @@
 ﻿using AuthenticationAuthorization.Dtos;
 using AuthenticationAuthorization.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AuthenticationAuthorization.Controllers
@@ -19,6 +20,7 @@ namespace AuthenticationAuthorization.Controllers
         }
 
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<ActionResult<UserResponseDto>> Register([FromBody] UserRegistrationDto request, CancellationToken cancellationToken = default)
         {
             if (!ModelState.IsValid)
@@ -54,6 +56,7 @@ namespace AuthenticationAuthorization.Controllers
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<ActionResult<UserLoginResponseDto>> Login(UserLoginDto request)
         {
             if (!ModelState.IsValid)
@@ -73,6 +76,7 @@ namespace AuthenticationAuthorization.Controllers
         }
 
         [HttpPost("refresh-token")]
+        [Authorize]
         public async Task<ActionResult<UserLoginResponseDto>> RefreshToken(RefreshTokenRequestDto request)
         {
             var result = await _accountManagementService.RefreshTokenAsync(request);

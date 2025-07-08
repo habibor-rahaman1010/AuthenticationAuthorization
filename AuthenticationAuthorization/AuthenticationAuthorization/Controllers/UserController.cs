@@ -26,7 +26,7 @@ namespace AuthenticationAuthorization.Controllers
         }
 
         [HttpGet("getallusers")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Support, Mamber")]
         public async Task<ActionResult<IEnumerable<UserResponseDto>>> GetAllUserAsync()
         {
             var user = await _userManagementService.GetAllUserAsync();
@@ -38,6 +38,7 @@ namespace AuthenticationAuthorization.Controllers
         }
 
         [HttpGet("GetUserById")]
+        [Authorize(Roles = "Admin, Support, Mamber")]
         public async Task<ActionResult<UserResponseDto>> GetUserById(Guid id)
         {
             var user = await _userManagementService.GetUserByIdAsync(id);
@@ -64,6 +65,7 @@ namespace AuthenticationAuthorization.Controllers
         }
 
         [HttpGet("GetUserByEmailId")]
+        [Authorize(Roles = "Admin, Support, Mamber")]
         public async Task<ActionResult<UserResponseDto>> GetUserByEmail(string email)
         {
             var user = await _userManagementService.GetUserByEmailAsync(email);
@@ -91,6 +93,7 @@ namespace AuthenticationAuthorization.Controllers
         }
 
         [HttpPut("UpdateUser/{id}")]
+        [Authorize(Roles = "Admin, Support")]
         public async Task<ActionResult<UserResponseDto>> UpdateUser([FromBody] UpdateUserDto request, Guid id)
         {
             if (!ModelState.IsValid)
@@ -136,6 +139,7 @@ namespace AuthenticationAuthorization.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {
             var isdeleted = await _userManagementService.DeleteUserAsync(id);
